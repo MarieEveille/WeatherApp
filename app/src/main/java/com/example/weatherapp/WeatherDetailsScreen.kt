@@ -25,28 +25,33 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.Alignment
 import kotlinx.coroutines.launch
 
+
 @Composable
 fun WeatherDetailsScreen(cityName: String, latitude: Double, longitude: Double) {
     var weatherData by remember { mutableStateOf<WeatherResponse?>(null) }
+    var errorMessage by remember { mutableStateOf<String?>(null) }
     val scope = rememberCoroutineScope()
 
-    LaunchedEffect(Unit) {
+    LaunchedEffect(latitude, longitude) {
         scope.launch {
             try {
-                val url = "https://api.open-meteo.com/v1/forecast?latitude=$latitude&longitude=$longitude&model=meteofrance_seamless"
-                Log.d("WeatherApp", "URL de la requête : $url") // Afficher l'URL dans les logs
-
-                val response = WeatherRetrofitInstance.api.getWeather(latitude, longitude)
-                weatherData = response
+                errorMessage = null
+                weatherData = WeatherRetrofitInstance.api.getWeather(latitude, longitude)
             } catch (e: Exception) {
-                Log.e("WeatherApp", "Erreur : ${e.message}")
+                Log.e("WeatherApp", "Erreur lors de l'appel API : ${e.message}")
+                errorMessage = "Erreur : impossible de récupérer les données météo."
             }
         }
     }
 
     Scaffold { contentPadding ->
-        if (weatherData != null) {
-            val hourly = weatherData!!.hourly
+        if (errorMessage != null) {
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                Text(errorMessage ?: "Erreur inconnue.")
+            }
+        } else if (weatherData != null) {
+            val current = weatherData!!.current
+
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -55,24 +60,35 @@ fun WeatherDetailsScreen(cityName: String, latitude: Double, longitude: Double) 
             ) {
                 Text(
                     text = "Météo pour $cityName",
-                    style = MaterialTheme.typography.titleLarge, // Correction du style, si h5 ne fonctionne pas
+                    style = MaterialTheme.typography.titleLarge,
                     modifier = Modifier.padding(bottom = 16.dp)
                 )
 
-                // Afficher les informations météo
-                Text("Latitude : $latitude")
-                Text("Longitude : $longitude")
+                Text("Température actuelle : ${current.temperature_2m}°C")
+                val condition = when (current.weather_code) {
+                    0 -> "Ensoleillé"
+                    1 -> "Nuageux"
+                    2 -> "Pluie"
+                    else -> "Conditions inconnues"
+                }
+                Text("Conditions : $condition")
+                Text("Température minimale : ${current.temperature_2m_min}°C")
+                Text("Température maximale : ${current.temperature_2m_max}°C")
+                Text("Vitesse du vent : ${current.wind_speed_10m} m/s")
+
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Exemple d'affichage de la température
                 LazyColumn {
-                    items(hourly.temperature_2m.take(24)) { temp ->
-                        Text("Température : $temp°C")
+                    if (!weatherData!!.hourly.temperature_2m.isNullOrEmpty()) {
+                        items(weatherData!!.hourly.temperature_2m.take(24)) { temp ->
+                            Text("Température à ${temp}°C")
+                        }
+                    } else {
+                        item { Text("Aucune prévision horaire disponible.") }
                     }
                 }
             }
         } else {
-            // Écran de chargement
             Box(
                 modifier = Modifier.fillMaxSize(),
                 contentAlignment = Alignment.Center

@@ -13,8 +13,9 @@ interface WeatherApi {
     suspend fun getWeather(
         @Query("latitude") latitude: Double,
         @Query("longitude") longitude: Double,
-        @Query("hourly") hourly: String = "temperature_2m,relative_humidity_2m,apparent_temperature,rain,wind_speed_10m",
-        @Query("model") model: String = "meteofrance_seamless"
+        @Query("current") current: String = "temperature_2m,relative_humidity_2m,apparent_temperature,wind_speed_10m,weather_code",  // Données actuelles
+        @Query("hourly") hourly: String = "temperature_2m,relative_humidity_2m,apparent_temperature,rain,wind_speed_10m", // Données horaires
+        @Query("models") model: String = "meteofrance_seamless"  // Modèle
     ): WeatherResponse
 }
 
