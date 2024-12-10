@@ -2,6 +2,8 @@ package com.example.weatherapp
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
@@ -17,47 +19,54 @@ import androidx.compose.material.icons.filled.Search
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.runtime.*
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
+import kotlinx.coroutines.launch
 
 @Composable
-fun HomeScreen() {
+fun HomeScreen(navController: NavController, viewModel: WeatherViewModel = viewModel()) {
     var searchText by remember { mutableStateOf("") }
-    val focusRequester = remember { FocusRequester() }
-    val keyboardController = LocalSoftwareKeyboardController.current
-    val focusManager = LocalFocusManager.current // Gère le focus global
+    val cities by viewModel.cities.collectAsState()
 
     Scaffold { contentPadding ->
-        Box(
+        Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(contentPadding)
-                .clickable { focusManager.clearFocus() } // Relâche le focus sur clic extérieur
+                .padding(16.dp)
         ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(16.dp)
-            ) {
-                TextField(
-                    value = searchText,
-                    onValueChange = { searchText = it },
-                    label = { Text("Rechercher une ville") },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .focusRequester(focusRequester),
-                    singleLine = true,
-                    trailingIcon = {
-                        Icon(Icons.Default.Search, contentDescription = "Rechercher")
-                    },
-                    keyboardOptions = KeyboardOptions.Default.copy(
-                        imeAction = ImeAction.Done
-                    ),
-                    keyboardActions = KeyboardActions(
-                        onDone = {
-                            keyboardController?.hide() // Masque le clavier
-                            focusManager.clearFocus() // Relâche le focus
-                        }
+            // Barre de recherche
+            TextField(
+                value = searchText,
+                onValueChange = { searchText = it },
+                label = { Text("Rechercher une ville") },
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true,
+                trailingIcon = {
+                    Icon(Icons.Default.Search, contentDescription = "Rechercher", modifier = Modifier.clickable {
+                        viewModel.searchCity(searchText)
+                    })
+                },
+                keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Search)
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Liste des résultats
+            LazyColumn {
+                items(cities) { city ->
+                    Text(
+                        text = "${city.name}, ${city.country}",
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable {
+                                // Naviguer vers l'écran de détails météo
+                                navController.navigate("details/${city.name}/${city.latitude}/${city.longitude}")
+                            }
+                            .padding(8.dp)
                     )
-                )
+                }
             }
         }
     }

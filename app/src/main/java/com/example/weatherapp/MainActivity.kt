@@ -15,15 +15,39 @@ import com.example.weatherapp.ui.theme.WeatherAppTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
             WeatherAppTheme {
-                Surface(color = MaterialTheme.colorScheme.background) {
-                    HomeScreen() // Appel au composable HomeScreen
+                val navController = rememberNavController()
+
+                NavHost(
+                    navController = navController,
+                    startDestination = "home"
+                ) {
+                    composable("home") {
+                        HomeScreen(navController)
+                    }
+                    composable("details/{cityName}/{latitude}/{longitude}") { backStackEntry ->
+                        val cityName = backStackEntry.arguments?.getString("cityName") ?: ""
+                        val latitude = backStackEntry.arguments?.getString("latitude")?.toDouble() ?: 0.0
+                        val longitude = backStackEntry.arguments?.getString("longitude")?.toDouble() ?: 0.0
+
+                        WeatherDetailsScreen(
+                            cityName = cityName,
+                            latitude = latitude,
+                            longitude = longitude
+                        )
+                    }
                 }
             }
         }
     }
 }
+
