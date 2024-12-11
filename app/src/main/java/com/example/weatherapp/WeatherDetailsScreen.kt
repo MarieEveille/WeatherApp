@@ -9,7 +9,12 @@ import androidx.compose.foundation.layout.Spacer // Ajout de l'import pour Space
 import androidx.compose.foundation.layout.Box // Ajout de l'import pour Box
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.outlined.Favorite
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconToggleButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.MaterialTheme // Ajout de l'import pour MaterialTheme
@@ -23,6 +28,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.platform.LocalContext
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 
@@ -30,6 +38,8 @@ import kotlinx.coroutines.launch
 fun WeatherDetailsScreen(cityName: String, latitude: Double, longitude: Double) {
     var weatherData by remember { mutableStateOf<WeatherResponse?>(null) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
+    val context = LocalContext.current
+    var isFavorite by remember { mutableStateOf(FavoritesManager.isFavorite(cityName)) }
     val scope = rememberCoroutineScope()
 
     LaunchedEffect(latitude, longitude) {
@@ -51,6 +61,7 @@ fun WeatherDetailsScreen(cityName: String, latitude: Double, longitude: Double) 
             }
         } else if (weatherData != null) {
             val current = weatherData!!.current
+            val daily = weatherData!!.daily
 
             Column(
                 modifier = Modifier
@@ -64,6 +75,30 @@ fun WeatherDetailsScreen(cityName: String, latitude: Double, longitude: Double) 
                     modifier = Modifier.padding(bottom = 16.dp)
                 )
 
+
+                IconToggleButton(
+                    checked = isFavorite,
+                    onCheckedChange = {
+                        isFavorite = it
+                        if (it) {
+                            // Ajouter aux favoris
+                            CoroutineScope(Dispatchers.IO).launch {
+                                FavoritesManager.addFavorite(context, cityName, latitude, longitude)
+                            }
+                        } else {
+                            // Retirer des favoris
+                            CoroutineScope(Dispatchers.IO).launch {
+                                FavoritesManager.removeFavorite(context, cityName)
+                            }
+                        }
+                    }
+                ) {
+                    Icon(
+                        imageVector = if (isFavorite) Icons.Filled.Favorite else Icons.Outlined.Favorite,
+                        contentDescription = if (isFavorite) "Retirer des favoris" else "Ajouter aux favoris"
+                    )
+                }
+
                 Text("Température actuelle : ${current.temperature_2m}°C")
                 val condition = when (current.weather_code) {
                     0 -> "Ensoleillé"
@@ -72,9 +107,12 @@ fun WeatherDetailsScreen(cityName: String, latitude: Double, longitude: Double) 
                     else -> "Conditions inconnues"
                 }
                 Text("Conditions : $condition")
-                Text("Température minimale : ${current.temperature_2m_min}°C")
-                Text("Température maximale : ${current.temperature_2m_max}°C")
+                Text("Température minimale : ${daily.temperature_2m_min}°C")
+                Text("Température maximale : ${daily.temperature_2m_max}°C")
                 Text("Vitesse du vent : ${current.wind_speed_10m} m/s")
+                Text("UV max : ${daily.uv_index_max}")
+                Text("Lever du soleil : ${daily.sunrise}")
+                Text("Coucher du soleil : ${daily.sunset}")
 
                 Spacer(modifier = Modifier.height(16.dp))
 

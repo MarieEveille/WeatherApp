@@ -4,7 +4,17 @@ data class WeatherResponse(
     val latitude: Double,
     val longitude: Double,
     val current: CurrentWeather,
-    val hourly: HourlyWeather
+    val hourly: HourlyWeather,
+    val daily: DailyWeather
+)
+
+data class DailyWeather(
+    val temperature_2m_max: List<Double>,
+    val temperature_2m_min: List<Double>,
+    val sunrise : List<String>,
+    val sunset : List<String>,
+    val uv_index_max : List<Double>
+
 )
 
 data class CurrentWeather(
