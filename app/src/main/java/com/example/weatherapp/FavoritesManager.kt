@@ -18,7 +18,6 @@ object FavoritesManager {
     }
 
 
-
     fun addFavorite(context: Context, cityName: String, latitude: Double, longitude: Double) {
         favoriteCities.add(FavoriteCity(cityName, latitude, longitude))
         CoroutineScope(Dispatchers.IO).launch {
