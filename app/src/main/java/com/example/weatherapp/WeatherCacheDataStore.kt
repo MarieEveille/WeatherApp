@@ -23,6 +23,7 @@ object WeatherCacheDataStore {
         Log.d("WeatherCacheDataStore", "Données sauvegardées : $json")
         context.weatherCacheDataStore.edit { preferences ->
             preferences[WEATHER_CACHE_KEY] = json
+            //ez
         }
     }
 
