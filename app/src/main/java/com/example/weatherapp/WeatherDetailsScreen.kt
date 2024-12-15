@@ -42,13 +42,13 @@ fun WeatherDetailsScreen(cityName: String, latitude: Double, longitude: Double) 
     var isFavorite by remember { mutableStateOf(FavoritesManager.isFavorite(cityName)) }
     val scope = rememberCoroutineScope()
 
-    LaunchedEffect(latitude, longitude) {
+    LaunchedEffect(cityName, latitude, longitude) {
         scope.launch {
             try {
                 errorMessage = null
-                weatherData = WeatherRetrofitInstance.api.getWeather(latitude, longitude)
+                weatherData = WeatherCacheManager.getWeatherData(context, cityName, latitude, longitude)
             } catch (e: Exception) {
-                Log.e("WeatherApp", "Erreur lors de l'appel API : ${e.message}")
+                Log.e("WeatherApp", "Erreur lors de la récupération des données : ${e.message}")
                 errorMessage = "Erreur : impossible de récupérer les données météo."
             }
         }
