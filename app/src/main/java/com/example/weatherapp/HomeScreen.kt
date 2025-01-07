@@ -20,21 +20,29 @@ import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import kotlinx.coroutines.launch
-
 @Composable
-fun HomeScreen(navController: NavController, viewModel: WeatherViewModel = viewModel()) {
-    var searchText by remember { mutableStateOf("") }
+fun HomeScreen(
+    navController: NavController,
+    onRequestLocation: () -> Unit,
+    viewModel: WeatherViewModel = viewModel()
+) {
+    // Remplacer 'remember' par 'rememberSaveable'
+    var searchText by rememberSaveable { mutableStateOf("") }
+    var showFavorites by rememberSaveable { mutableStateOf(true) }
+    var searchTriggered by rememberSaveable { mutableStateOf(false) }
+
     val cities by viewModel.cities.collectAsState()
+
     val context = LocalContext.current
     val favoritesFlow = remember { FavoritesDataStore.getFavorites(context) }
     val favorites by favoritesFlow.collectAsState(initial = emptyList())
-    var showFavorites by remember { mutableStateOf(true) }
-    var searchTriggered by remember { mutableStateOf(false) } // État pour savoir si une recherche est en cours
+
     val focusManager = LocalFocusManager.current
 
     Scaffold { contentPadding ->
@@ -43,7 +51,7 @@ fun HomeScreen(navController: NavController, viewModel: WeatherViewModel = viewM
                 .fillMaxSize()
                 .padding(contentPadding)
                 .clickable {
-                    focusManager.clearFocus() // Défocaliser la barre de recherche si on clique ailleurs
+                    focusManager.clearFocus()
                 }
         ) {
             Column(
@@ -51,7 +59,6 @@ fun HomeScreen(navController: NavController, viewModel: WeatherViewModel = viewM
                     .fillMaxSize()
                     .padding(16.dp)
             ) {
-                // Barre de recherche
                 TextField(
                     value = searchText,
                     onValueChange = { searchText = it },
@@ -60,34 +67,47 @@ fun HomeScreen(navController: NavController, viewModel: WeatherViewModel = viewM
                         .fillMaxWidth()
                         .onFocusChanged { focusState ->
                             if (!searchTriggered) {
-                                showFavorites = !focusState.isFocused // Cache les favoris uniquement si aucune recherche
+                                // Cache les favoris si on focus
+                                showFavorites = !focusState.isFocused
                             }
                         },
                     singleLine = true,
                     trailingIcon = {
-                        Icon(Icons.Default.Search, contentDescription = "Rechercher", modifier = Modifier.clickable {
-                            if (searchText.isNotBlank()) {
-                                viewModel.searchCity(searchText)
-                                searchTriggered = true // Déclenche l'affichage des résultats
-                                showFavorites = false // Cache les favoris après la recherche
-                                focusManager.clearFocus() // Ferme le clavier après recherche
+                        Icon(
+                            Icons.Default.Search,
+                            contentDescription = "Rechercher",
+                            modifier = Modifier.clickable {
+                                if (searchText.isNotBlank()) {
+                                    viewModel.searchCity(searchText)
+                                    searchTriggered = true
+                                    showFavorites = false
+                                    focusManager.clearFocus()
+                                }
                             }
-                        })
+                        )
                     },
                     keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Search),
                     keyboardActions = KeyboardActions(onSearch = {
                         if (searchText.isNotBlank()) {
                             viewModel.searchCity(searchText)
-                            searchTriggered = true // Déclenche l'affichage des résultats
-                            showFavorites = false // Cache les favoris après l'action de recherche
-                            focusManager.clearFocus() // Ferme le clavier après recherche
+                            searchTriggered = true
+                            showFavorites = false
+                            focusManager.clearFocus()
                         }
                     })
                 )
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Section des favoris
+                Button(
+                    onClick = { onRequestLocation() },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("Utiliser ma géolocalisation")
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
                 if (showFavorites && !searchTriggered && favorites.isNotEmpty()) {
                     Text(
                         text = "Favoris",
@@ -102,8 +122,9 @@ fun HomeScreen(navController: NavController, viewModel: WeatherViewModel = viewM
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .clickable {
-                                        // Naviguer vers l'écran de détails météo
-                                        navController.navigate("details/${favoriteCity.name}/${favoriteCity.latitude}/${favoriteCity.longitude}")
+                                        navController.navigate(
+                                            "details/${favoriteCity.name}/${favoriteCity.latitude}/${favoriteCity.longitude}"
+                                        )
                                     }
                                     .padding(8.dp)
                             )
@@ -112,7 +133,6 @@ fun HomeScreen(navController: NavController, viewModel: WeatherViewModel = viewM
                     Spacer(modifier = Modifier.height(16.dp))
                 }
 
-                // Liste des résultats
                 if (searchTriggered) {
                     Text(
                         text = "Résultats de recherche",
@@ -127,8 +147,9 @@ fun HomeScreen(navController: NavController, viewModel: WeatherViewModel = viewM
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .clickable {
-                                        // Naviguer vers l'écran de détails météo
-                                        navController.navigate("details/${city.name}/${city.latitude}/${city.longitude}")
+                                        navController.navigate(
+                                            "details/${city.name}/${city.latitude}/${city.longitude}"
+                                        )
                                     }
                                     .padding(8.dp)
                             )

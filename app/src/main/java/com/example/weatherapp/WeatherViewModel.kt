@@ -21,4 +21,15 @@ class WeatherViewModel : ViewModel() {
             }
         }
     }
+
+    fun fetchWeather(lat: Double, lon: Double) {
+        viewModelScope.launch {
+            try {
+                val response = WeatherRetrofitInstance.api.getWeather(lat, lon)
+
+            } catch (e: Exception) {
+                // Gérer l’erreur
+            }
+        }
+    }
 }

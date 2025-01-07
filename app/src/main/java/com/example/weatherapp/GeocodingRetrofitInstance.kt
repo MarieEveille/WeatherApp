@@ -13,4 +13,5 @@ object GeocodingRetrofitInstance {
             .build()
             .create(WeatherApi::class.java)
     }
+
 }

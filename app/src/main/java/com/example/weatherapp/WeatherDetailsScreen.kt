@@ -55,83 +55,97 @@ fun WeatherDetailsScreen(cityName: String, latitude: Double, longitude: Double) 
     }
 
     Scaffold { contentPadding ->
-        if (errorMessage != null) {
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text(errorMessage ?: "Erreur inconnue.")
-            }
-        } else if (weatherData != null) {
-            val current = weatherData!!.current
-            val daily = weatherData!!.daily
-
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(contentPadding)
-                    .padding(16.dp)
-            ) {
-                Text(
-                    text = "Météo pour $cityName",
-                    style = MaterialTheme.typography.titleLarge,
-                    modifier = Modifier.padding(bottom = 16.dp)
-                )
-
-
-                IconToggleButton(
-                    checked = isFavorite,
-                    onCheckedChange = {
-                        isFavorite = it
-                        if (it) {
-                            // Ajouter aux favoris
-                            CoroutineScope(Dispatchers.IO).launch {
-                                FavoritesManager.addFavorite(context, cityName, latitude, longitude)
-                            }
-                        } else {
-                            // Retirer des favoris
-                            CoroutineScope(Dispatchers.IO).launch {
-                                FavoritesManager.removeFavorite(context, cityName)
-                            }
-                        }
-                    }
+        when {
+            errorMessage != null -> {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(contentPadding),
+                    contentAlignment = Alignment.Center
                 ) {
-                    Icon(
-                        imageVector = if (isFavorite) Icons.Filled.Favorite else Icons.Outlined.Favorite,
-                        contentDescription = if (isFavorite) "Retirer des favoris" else "Ajouter aux favoris"
-                    )
+                    Text(errorMessage ?: "Erreur inconnue.")
                 }
+            }
 
-                Text("Température actuelle : ${current.temperature_2m}°C")
-                val condition = when (current.weather_code) {
-                    0 -> "Ensoleillé"
-                    1 -> "Nuageux"
-                    2 -> "Pluie"
-                    else -> "Conditions inconnues"
-                }
-                Text("Conditions : $condition")
-                Text("Température minimale : ${daily.temperature_2m_min}°C")
-                Text("Température maximale : ${daily.temperature_2m_max}°C")
-                Text("Vitesse du vent : ${current.wind_speed_10m} m/s")
-                Text("UV max : ${daily.uv_index_max}")
-                Text("Lever du soleil : ${daily.sunrise}")
-                Text("Coucher du soleil : ${daily.sunset}")
+            weatherData != null -> {
+                val current = weatherData!!.current
+                val daily = weatherData!!.daily
 
-                Spacer(modifier = Modifier.height(16.dp))
+                // On utilise LazyColumn pour tout le contenu
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(contentPadding)
+                        .padding(16.dp)
+                ) {
+                    // Bloc "header" (texte, favoris, infos courantes)
+                    item {
+                        Text(
+                            text = "Météo pour $cityName",
+                            style = MaterialTheme.typography.titleLarge,
+                            modifier = Modifier.padding(bottom = 16.dp)
+                        )
+                        IconToggleButton(
+                            checked = isFavorite,
+                            onCheckedChange = {
+                                isFavorite = it
+                                if (it) {
+                                    CoroutineScope(Dispatchers.IO).launch {
+                                        FavoritesManager.addFavorite(context, cityName, latitude, longitude)
+                                    }
+                                } else {
+                                    CoroutineScope(Dispatchers.IO).launch {
+                                        FavoritesManager.removeFavorite(context, cityName)
+                                    }
+                                }
+                            }
+                        ) {
+                            Icon(
+                                imageVector = if (isFavorite) Icons.Filled.Favorite else Icons.Outlined.Favorite,
+                                contentDescription = if (isFavorite) "Retirer des favoris" else "Ajouter aux favoris"
+                            )
+                        }
 
-                LazyColumn {
+                        Text("Température actuelle : ${current.temperature_2m}°C")
+                        val condition = when (current.weather_code) {
+                            0 -> "Ensoleillé"
+                            1 -> "Nuageux"
+                            2 -> "Pluie"
+                            else -> "Conditions inconnues"
+                        }
+                        Text("Conditions : $condition")
+                        Text("Température minimale : ${daily.temperature_2m_min}°C")
+                        Text("Température maximale : ${daily.temperature_2m_max}°C")
+                        Text("Vitesse du vent : ${current.wind_speed_10m} m/s")
+                        Text("UV max : ${daily.uv_index_max}")
+                        Text("Lever du soleil : ${daily.sunrise}")
+                        Text("Coucher du soleil : ${daily.sunset}")
+
+                        Spacer(modifier = Modifier.height(16.dp))
+                    }
+
+                    // Bloc "horaire" (24 premiers relevés)
                     if (!weatherData!!.hourly.temperature_2m.isNullOrEmpty()) {
                         items(weatherData!!.hourly.temperature_2m.take(24)) { temp ->
-                            Text("Température à ${temp}°C")
+                            Text("Température à $temp°C")
                         }
                     } else {
-                        item { Text("Aucune prévision horaire disponible.") }
+                        item {
+                            Text("Aucune prévision horaire disponible.")
+                        }
                     }
                 }
             }
-        } else {
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) {
-                CircularProgressIndicator()
+
+            else -> {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(contentPadding),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator()
+                }
             }
         }
     }

@@ -20,5 +20,6 @@ interface WeatherApi {
         @Query("forecast_days") forecastDays: Int = 1,  // Nombre de jours de prévisions
         @Query("models") model: String = "meteofrance_seamless"  // Modèle
     ): WeatherResponse
+
 }
 
