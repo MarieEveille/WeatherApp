@@ -42,7 +42,7 @@ An intuitive Android weather application providing real-time weather updates and
 ## Installation  
 1. Clone the repository:  
    ```bash  
-   git clone https://github.com/your-username/AppMeteo.git
+   git clone https://github.com/MarieEveille/AppMeteo.git
    ```
 2. Open the project in Android Studio.
 3. Sync Gradle and install dependencies.
