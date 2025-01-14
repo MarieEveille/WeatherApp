@@ -1,6 +1,7 @@
-package com.example.weatherapp
+package com.example.weatherapp.favorites
 
 import android.content.Context
+import com.google.ai.client.generativeai.type.content
 
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -10,7 +11,6 @@ object FavoritesManager {
     private val favoriteCities = mutableSetOf<FavoriteCity>()
 
     suspend fun initializeFavorites(context: Context) {
-        // Charger les favoris depuis DataStore
         FavoritesDataStore.getFavorites(context).collect { loadedFavorites ->
             favoriteCities.clear()
             favoriteCities.addAll(loadedFavorites)

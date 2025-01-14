@@ -1,8 +1,9 @@
-package com.example.weatherapp
+package com.example.weatherapp.weather
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.weatherapp.geocoding.City
+import com.example.weatherapp.geocoding.GeocodingRetrofitInstance
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -22,14 +23,4 @@ class WeatherViewModel : ViewModel() {
         }
     }
 
-    fun fetchWeather(lat: Double, lon: Double) {
-        viewModelScope.launch {
-            try {
-                val response = WeatherRetrofitInstance.api.getWeather(lat, lon)
-
-            } catch (e: Exception) {
-                // Gérer l’erreur
-            }
-        }
-    }
 }

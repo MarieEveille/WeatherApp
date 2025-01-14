@@ -9,30 +9,25 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.ui.ExperimentalComposeUiApi
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalFocusManager
-import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import kotlinx.coroutines.launch
+import com.example.weatherapp.favorites.FavoritesDataStore
+import com.example.weatherapp.weather.WeatherViewModel
+
 @Composable
 fun HomeScreen(
     navController: NavController,
     onRequestLocation: () -> Unit,
     viewModel: WeatherViewModel = viewModel()
 ) {
-    // Remplacer 'remember' par 'rememberSaveable'
     var searchText by rememberSaveable { mutableStateOf("") }
     var showFavorites by rememberSaveable { mutableStateOf(true) }
     var searchTriggered by rememberSaveable { mutableStateOf(false) }
@@ -67,7 +62,6 @@ fun HomeScreen(
                         .fillMaxWidth()
                         .onFocusChanged { focusState ->
                             if (!searchTriggered) {
-                                // Cache les favoris si on focus
                                 showFavorites = !focusState.isFocused
                             }
                         },

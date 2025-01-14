@@ -18,22 +18,21 @@ import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import kotlinx.coroutines.launch
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.navigation.NavController
 import androidx.navigation.NavHostController
+import com.example.weatherapp.favorites.FavoritesManager
+import com.example.weatherapp.weather.cache.WeatherCacheManager
+import com.example.weatherapp.weather.WeatherDetailsScreen
 
 class MainActivity : ComponentActivity() {
 
     private lateinit var fusedLocationClient: FusedLocationProviderClient
     private lateinit var navController: NavHostController
 
-    // Nouveau : on utilise un « launcher » pour la demande de permission
     private val requestPermissionLauncher =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
             if (isGranted) {
-                // Permission accordée : on peut récupérer la géolocalisation
                 getUserLocation()
             } else {
-                // Permission refusée
                 Toast.makeText(this, "Permission refusée", Toast.LENGTH_SHORT).show()
             }
         }
@@ -50,7 +49,6 @@ class MainActivity : ComponentActivity() {
         setContent {
             WeatherAppTheme {
                 val localNavController = rememberNavController()
-                // On l’assigne à la variable de classe pour l’utiliser en-dehors
                 navController = localNavController
 
 
@@ -59,7 +57,6 @@ class MainActivity : ComponentActivity() {
                     startDestination = "home"
                 ) {
                     composable("home") {
-                        // On passe la fonction qui va demander la localisation
                         HomeScreen(
                             navController = navController,
                             onRequestLocation = {
@@ -85,27 +82,20 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    /**
-     * Vérifie si la permission est déjà accordée ou non.
-     * Si elle ne l’est pas, on lance la demande via `requestPermissionLauncher`.
-     */
+
     private fun requestUserLocation() {
         val permissionStatus = ContextCompat.checkSelfPermission(
             this,
             Manifest.permission.ACCESS_FINE_LOCATION
         )
         if (permissionStatus == PackageManager.PERMISSION_GRANTED) {
-            // Permission déjà accordée
+
             getUserLocation()
         } else {
-            // Lancer la demande de permission
             requestPermissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
         }
     }
 
-    /**
-     * Récupère la dernière position connue (requiert la permission accordée).
-     */
     @SuppressLint("MissingPermission")
     private fun getUserLocation() {
         fusedLocationClient.lastLocation.addOnSuccessListener { location ->
@@ -117,7 +107,7 @@ class MainActivity : ComponentActivity() {
                     try {
                         val weatherResponse = WeatherCacheManager.getWeatherData(
                             context = this@MainActivity,
-                            cityName = "cityName", // Nom fictif ou provenant d'un reverse geocoding
+                            cityName = "cityName",
                             latitude = lat,
                             longitude = lon
                         )

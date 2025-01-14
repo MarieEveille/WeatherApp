@@ -1,4 +1,4 @@
-package com.example.weatherapp
+package com.example.weatherapp.geocoding
 
 data class GeocodingResponse(
     val results: List<City>?

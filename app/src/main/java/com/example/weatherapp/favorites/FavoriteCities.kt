@@ -1,4 +1,4 @@
-package com.example.weatherapp
+package com.example.weatherapp.favorites
 
 data class FavoriteCity(
     val name: String,

@@ -1,14 +1,14 @@
-package com.example.weatherapp
+package com.example.weatherapp.weather.cache
 
 import android.content.Context
 import android.util.Log
+import com.example.weatherapp.weather.WeatherResponse
+import com.example.weatherapp.weather.WeatherRetrofitInstance
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.runBlocking
 
 object WeatherCacheManager {
-    private const val CACHE_EXPIRATION = 60 * 60 * 1000 // 1 heure en millisecondes
+    private const val CACHE_EXPIRATION = 60 * 60 * 1000
 
-    // Obtenir les données météo pour une ville
     suspend fun getWeatherData(
         context: Context,
         cityName: String,
@@ -18,18 +18,15 @@ object WeatherCacheManager {
         val cachedWeathers = WeatherCacheDataStore.getCachedWeathers(context).first()
         Log.d("WeatherCacheManager", "Données en cache : $cachedWeathers")
 
-        // Rechercher la ville dans le cache
         val cachedWeather = cachedWeathers.find { it.cityName == cityName }
         Log.d("WeatherCacheManager", "Données en cache pour $cityName : $cachedWeather")
 
-        // Si les données en cache sont valides, les retourner
         if (cachedWeather != null
         ) {
             Log.d("WeatherCacheManager", "Données récupérées depuis le cache pour $cityName.")
             return cachedWeather.weatherData
         }
 
-        // Sinon, appeler l'API et mettre à jour le cache
         val newWeatherData = WeatherRetrofitInstance.api.getWeather(latitude, longitude)
         val newCachedWeather = CachedWeather(
             cityName = cityName,
@@ -39,7 +36,6 @@ object WeatherCacheManager {
             timestamp = System.currentTimeMillis()
         )
 
-        // Mettre à jour ou ajouter la ville dans le tableau
         val updatedCache = cachedWeathers.filter { it.cityName != cityName } + newCachedWeather
         WeatherCacheDataStore.saveWeathers(context, updatedCache)
 

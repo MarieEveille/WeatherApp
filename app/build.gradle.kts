@@ -60,6 +60,7 @@ dependencies {
     implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation(libs.androidx.navigation.compose)
     implementation (libs.androidx.room.runtime)
+    implementation(libs.generativeai)
     testImplementation(libs.junit)
     implementation (libs.play.services.location)
     androidTestImplementation(libs.androidx.junit)
