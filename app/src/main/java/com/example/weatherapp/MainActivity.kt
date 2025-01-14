@@ -74,7 +74,10 @@ class MainActivity : ComponentActivity() {
                         WeatherDetailsScreen(
                             cityName = cityName,
                             latitude = latitude,
-                            longitude = longitude
+                            longitude = longitude,
+                            onBack = {
+                                navController.popBackStack()
+                            }
                         )
                     }
                 }

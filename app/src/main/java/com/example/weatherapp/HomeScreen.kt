@@ -40,6 +40,15 @@ fun HomeScreen(
 
     val focusManager = LocalFocusManager.current
 
+    DisposableEffect(Unit) {
+        onDispose {
+            // Remettre à zéro quand on quitte l'écran
+            searchText = ""
+            showFavorites = true
+            searchTriggered = false
+        }
+    }
+
     Scaffold { contentPadding ->
         Box(
             modifier = Modifier

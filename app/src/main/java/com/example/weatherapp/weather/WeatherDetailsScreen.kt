@@ -9,14 +9,18 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.outlined.Favorite
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconToggleButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SmallTopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -35,13 +39,15 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun WeatherDetailsScreen(cityName: String, latitude: Double, longitude: Double) {
+fun WeatherDetailsScreen(cityName: String, latitude: Double, longitude: Double, onBack: () -> Unit ) {
     var weatherData by remember { mutableStateOf<WeatherResponse?>(null) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
     val context = LocalContext.current
     var isFavorite by remember { mutableStateOf(FavoritesManager.isFavorite(cityName)) }
     val scope = rememberCoroutineScope()
+
 
     LaunchedEffect(cityName, latitude, longitude) {
         scope.launch {
@@ -56,7 +62,25 @@ fun WeatherDetailsScreen(cityName: String, latitude: Double, longitude: Double) 
         }
     }
 
-    Scaffold { contentPadding ->
+    Scaffold(
+        topBar = {
+            SmallTopAppBar(
+            title = { Text("Météo pour $cityName") },
+            navigationIcon = {
+                IconButton(onClick = { onBack() }) {
+                    Icon(
+                        imageVector = Icons.Default.ArrowBack,
+                        contentDescription = "Revenir à l'écran précédent"
+                    )
+                }
+            }
+    )
+
+}
+) {
+
+
+        contentPadding ->
         when {
             errorMessage != null -> {
                 Box(
@@ -82,11 +106,6 @@ fun WeatherDetailsScreen(cityName: String, latitude: Double, longitude: Double) 
                 ) {
 
                     item {
-                        Text(
-                            text = "Météo pour $cityName",
-                            style = MaterialTheme.typography.titleLarge,
-                            modifier = Modifier.padding(bottom = 16.dp)
-                        )
                         IconToggleButton(
                             checked = isFavorite,
                             onCheckedChange = {
